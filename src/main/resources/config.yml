@@ -1,0 +1,21 @@
+prefix: "[Bounties]"
+currency: "¥"
+bounty-limit: -1
+
+lang:
+  invalid-command: " &cInvalid Command!"
+  insufficient-permissions: " &cYou have insufficient permissions to do this!"
+  sender-must-be-player: " &cYou must be a player to do this!"
+  invalid-command-setbounty: " &cYou must enter a valid user. \nFormat: /setbounty <user>"
+  invalid-command-claimbounty: " &cYou must enter a valid user. \nFormat: /claimbounty <user>"
+  insufficient-funds: " &cBounty failed! You have insufficient funds!"
+  bounty-cancelled: " &cBounty was cancelled."
+  bounties-gui-title: "&2Bounties"
+  setbounty-gui-title: "&9Set Bounty"
+  viewbounty-gui-title: "&5View Bounty"
+  unknown-error: " &cAn unknown error occurred, please try again!"
+  bounty-claimed: " {KILLER} just killed {TARGET} and for the following rewards: {REWARDS}!"
+  invalid-eco-reward: " &7Reward value was not a number, so was set to ¥0."
+  bounty-limit-reached: " &cThe server has reached the bounty limit, you cannot set any more bounties until others have been collection or expired!"
+  bounty-appended: " {PLAYER} added to {TARGET}'s bounty with the additional rewards: {REWARDS}"
+  bounty-set: " {PLAYER} set a bounty on {TARGET} with the following rewards: {REWARDS}"

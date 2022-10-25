@@ -1,0 +1,38 @@
+name: JammyBounties
+version: '${project.version}'
+main: me.vaindev.jammybounties.JammyBounties
+api-version: 1.17
+authors: [ vaindev ]
+depend:
+  - Vault
+  - ProtocolLib
+description: Bounties plugin by vaindev
+
+commands:
+  bounties:
+    description: General Bounties Commands
+    usage: /<command>
+    permission: bounties.use
+    aliases: [ bountygui, bounty, bounties, jammybounties, jbounties ]
+  bountiesreload:
+    description: Plugin reload command
+    usage: /<command>
+    permission: bounties.admin
+    aliases: [ bountyreload ]
+  setbounty:
+    description: Command to set a bounty
+    usage: /<command>
+    permission: bounties.use
+    aliases: [ sbounty, bountyset ]
+  claimbounty:
+    description: Command to claim a bounty
+    usage: /<command>
+    permission: bounties.admin
+
+permissions:
+  bounties.use:
+    description: Allows user to use & set bounties
+    default: true
+  bounties.admin:
+    description: Gives user access to admin bounties commands
+    default: op
