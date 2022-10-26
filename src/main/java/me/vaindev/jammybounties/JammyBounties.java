@@ -19,8 +19,9 @@ public final class JammyBounties extends JavaPlugin {
 
     public static Economy economy;
 
-    public static SignMenuFactory signMenuFactory;
-    public static GuiInitializer guiInitializer;
+    public GuiInitializer guiInitializer;
+    public SignMenuFactory signMenuFactory;
+
 
     public Logger log;
 
@@ -30,17 +31,19 @@ public final class JammyBounties extends JavaPlugin {
 
     private void initPapi() {
         if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null)
-            this.PAPI_ENABLED = true;
+            PAPI_ENABLED = true;
     }
 
     private void initEconomy() {
         RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(Economy.class);
-        this.economy = economyProvider.getProvider();
+        economy = economyProvider.getProvider();
     }
 
     @Override
     public void onEnable() {
 
+        saveDefaultConfig();
+        reloadConfig();
         this.log = getLogger();
 
         this.signMenuFactory = new SignMenuFactory(this);
@@ -87,12 +90,12 @@ public final class JammyBounties extends JavaPlugin {
         DataAccess.removeBounty(killedId);
 
         killer.getInventory().addItem(bounty.getItems());
-        this.economy.depositPlayer(killer, bounty.getEco());
+        economy.depositPlayer(killer, bounty.getEco());
         String announcementString = this.getConfig().getString("prefix") + this.getConfig().getConfigurationSection("lang").getString("bounty-claimed");
         announcementString = announcementString
-                .replaceAll("(?i)\\{killer\\}", killer.getDisplayName())
-                .replaceAll("(?i)\\{target\\}", killed.getDisplayName())
-                .replaceAll("(?i)\\{rewards\\}", rewardString);
+                .replaceAll("(?i)\\{killer}", killer.getDisplayName())
+                .replaceAll("(?i)\\{target}", killed.getDisplayName())
+                .replaceAll("(?i)\\{rewards}", rewardString);
 
         this.getServer().broadcastMessage(announcementString);
     }

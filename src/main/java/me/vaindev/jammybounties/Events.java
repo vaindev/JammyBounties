@@ -6,6 +6,7 @@ import me.vaindev.jammybounties.utils.StringFormat;
 import org.bukkit.*;
 import org.bukkit.block.Skull;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -25,7 +26,7 @@ import java.util.List;
 
 public class Events implements Listener {
 
-    private static final Map<Player, Inventory> setBountyMenuMap = new HashMap();
+    private static final HashMap<Player, Inventory> setBountyMenuMap = new HashMap<>();
     private static final Set<Player> successfullySetBounty = new HashSet<>();
     private final Plugin plugin;
     private final JammyBounties jammyBounties;
@@ -41,9 +42,8 @@ public class Events implements Listener {
     public void OnInventoryClick(InventoryClickEvent event) {
         InventoryView view = event.getView();
 
-        if (!(event.getWhoClicked() instanceof Player))
+        if (!(event.getWhoClicked() instanceof Player player))
             return;
-        Player player = (Player) event.getWhoClicked();
 
         if (view.getTitle().equals(StringFormat
                 .formatString(this.plugin.getConfig().getConfigurationSection("lang").getString("viewbounty-gui-title")))) {
@@ -59,15 +59,15 @@ public class Events implements Listener {
             int page;
             if (currentItem == null)
                 return;
-            if (currentItem.equals(this.guiInitializer.previousMenuButton())) {
-                page = guiInitializer.guiPages.get(view.getTopInventory()) - 1;
-                guiInitializer.guiPages.remove(view.getTopInventory());
+            if (currentItem.equals(GuiInitializer.previousMenuButton())) {
+                page = GuiInitializer.guiPages.get(view.getTopInventory()) - 1;
+                GuiInitializer.guiPages.remove(view.getTopInventory());
                 player.openInventory(this.guiInitializer.listBountiesGui(page));
                 return;
             }
-            if (currentItem.equals(this.guiInitializer.nextMenuButton())) {
-                page = guiInitializer.guiPages.get(view.getTopInventory()) + 1;
-                guiInitializer.guiPages.remove(view.getTopInventory());
+            if (currentItem.equals(GuiInitializer.nextMenuButton())) {
+                page = GuiInitializer.guiPages.get(view.getTopInventory()) + 1;
+                GuiInitializer.guiPages.remove(view.getTopInventory());
                 player.openInventory(this.guiInitializer.listBountiesGui(page));
                 return;
             }
@@ -95,7 +95,7 @@ public class Events implements Listener {
 
             if (event.getSlot() == 2 &&
                     !(inv instanceof PlayerInventory)) {
-                this.setBountyMenuMap.put(player, event.getClickedInventory());
+                setBountyMenuMap.put(player, event.getClickedInventory());
                 openSign(player);
                 return;
             }
@@ -123,7 +123,7 @@ public class Events implements Listener {
                 try {
                     ecoString = lore.get(0).split(this.plugin.getConfig().getString("currency"));
                     if (ecoString.length > 1)
-                        eco = Integer.valueOf(ecoString[1]);
+                        eco = Double.parseDouble(ecoString[1]);
                 } catch (NumberFormatException e) {
                     StringFormat.msg(player, this.plugin.getConfig().getString("prefix") + plugin.getConfig().getConfigurationSection("lang").getString("invalid-eco-reward"));
                 }
@@ -151,12 +151,10 @@ public class Events implements Listener {
 
                 Player targetPlayer = Bukkit.getPlayer(target);
                 announcementString = announcementString
-                        .replaceAll("(?i)\\{player\\}", player.getDisplayName())
-                        .replaceAll("(?i)\\{target\\}",  targetPlayer != null ? targetPlayer.getDisplayName() : Bukkit.getOfflinePlayer(target).getName())
-                        .replaceAll("(?i)\\{rewards\\}", rewardString);
+                        .replaceAll("(?i)\\{player}", player.getDisplayName())
+                        .replaceAll("(?i)\\{target}",  targetPlayer != null ? targetPlayer.getDisplayName() : Bukkit.getOfflinePlayer(target).getName())
+                        .replaceAll("(?i)\\{rewards}", rewardString);
                 StringFormat.msg(player, this.plugin.getConfig().getString("prefix") + announcementString);
-
-                return;
             }
         }
     }
@@ -166,34 +164,31 @@ public class Events implements Listener {
         if (!event.getView().getTitle().equals(StringFormat
                 .formatString(plugin.getConfig().getConfigurationSection("lang").getString("setbounty-gui-title"))))
             return;
-        if (this.successfullySetBounty.remove(event.getPlayer()))
+
+        Player player = (Player) event.getPlayer();
+        if (successfullySetBounty.contains(player))
             return;
 
+        successfullySetBounty.remove(player);
         ItemStack[] items = filterInvItems(event.getInventory().getContents());
         event.getPlayer().getInventory().addItem(items);
     }
 
     @EventHandler
     public void OnPlayerKill(PlayerDeathEvent event) {
-        Entity killed = event.getEntity();
-        Entity killer = event.getEntity().getKiller();
-
-        if (!(killed instanceof Player))
-            return;
-        if (!(killer instanceof Player))
-            return;
-
-        this.jammyBounties.claimBounty((Player) killed, (Player) killer);
+        Player killed = event.getEntity();
+        Player killer = event.getEntity().getKiller();
+        this.jammyBounties.claimBounty(killed, killer);
     }
 
     public void openSign(Player target) {
-        SignMenuFactory.Menu menu = JammyBounties.signMenuFactory.newMenu(Arrays.asList("", "^^^^^^^^", "Enter reward", "amount above"))
+        SignMenuFactory.Menu menu = this.jammyBounties.getSignMenuFactory().newMenu(Arrays.asList("", "^^^^^^^^", "Enter reward", "amount above"))
                 .reopenIfFail(false)
                 .response((player, strings) -> {
                     String eco = strings[0];
 
-                    Inventory inv = this.setBountyMenuMap.get(player);
-                    this.setBountyMenuMap.remove(player);
+                    Inventory inv = setBountyMenuMap.get(player);
+                    setBountyMenuMap.remove(player);
 
                     ItemStack ecoSet = inv.getItem(2);
                     ItemMeta meta = ecoSet.getItemMeta();
