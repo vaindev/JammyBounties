@@ -29,7 +29,7 @@ public record Bounty(UUID uuid, ItemStack[] items, double eco,
         StringBuilder stringBuilder = new StringBuilder();
         if (items != null)
             for (ItemStack item : items) {
-                stringBuilder.append(ChatColor.YELLOW + String.valueOf(item.getAmount()) + "x " + ChatColor.WHITE + (item.hasItemMeta() ? item.getItemMeta().getDisplayName() + ", " : item.getType().data.getSimpleName() + ", "));
+                stringBuilder.append(ChatColor.YELLOW).append(item.getAmount()).append("x ").append(ChatColor.WHITE).append(item.hasItemMeta() ? item.getItemMeta().getDisplayName() + ", " : item.getType().data.getSimpleName() + ", ");
             }
 
         if (stringBuilder.isEmpty())

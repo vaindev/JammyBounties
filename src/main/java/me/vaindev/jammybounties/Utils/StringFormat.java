@@ -1,4 +1,4 @@
-package me.vaindev.jammybounties.utils;
+package me.vaindev.jammybounties.Utils;
 
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.vaindev.jammybounties.JammyBounties;

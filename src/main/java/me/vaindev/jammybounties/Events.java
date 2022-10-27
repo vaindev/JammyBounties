@@ -1,12 +1,10 @@
 package me.vaindev.jammybounties;
 
-import com.comphenix.protocol.PacketType;
-import me.vaindev.jammybounties.utils.GuiInitializer;
-import me.vaindev.jammybounties.utils.StringFormat;
+import me.vaindev.jammybounties.Inventories.BountiesGui;
+import me.vaindev.jammybounties.Inventories.BountyViewGui;
+import me.vaindev.jammybounties.Utils.GuiItemUtil;
+import me.vaindev.jammybounties.Utils.StringFormat;
 import org.bukkit.*;
-import org.bukkit.block.Skull;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -19,7 +17,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
-import org.bukkit.plugin.Plugin;
 
 import java.util.*;
 import java.util.List;
@@ -28,14 +25,10 @@ public class Events implements Listener {
 
     private static final HashMap<Player, Inventory> setBountyMenuMap = new HashMap<>();
     private static final Set<Player> successfullySetBounty = new HashSet<>();
-    private final Plugin plugin;
-    private final JammyBounties jammyBounties;
-    private final GuiInitializer guiInitializer;
+    private final JammyBounties plugin;
 
-    public Events(Plugin plugin, JammyBounties jammyBounties, GuiInitializer guiInitializer) {
+    public Events(JammyBounties plugin) {
         this.plugin = plugin;
-        this.jammyBounties = jammyBounties;
-        this.guiInitializer = guiInitializer;
     }
 
     @EventHandler
@@ -55,20 +48,23 @@ public class Events implements Listener {
                 .formatString(this.plugin.getConfig().getConfigurationSection("lang").getString("bounties-gui-title")))) {
 
             ItemStack currentItem = event.getCurrentItem();
+            BountiesGui bountiesGui;
 
             int page;
             if (currentItem == null)
                 return;
-            if (currentItem.equals(GuiInitializer.previousMenuButton())) {
-                page = GuiInitializer.guiPages.get(view.getTopInventory()) - 1;
-                GuiInitializer.guiPages.remove(view.getTopInventory());
-                player.openInventory(this.guiInitializer.listBountiesGui(page));
+            if (currentItem.equals(BountiesGui.previousMenuButton())) {
+                page = GuiItemUtil.guiPages.get(view.getTopInventory()) - 1;
+                bountiesGui = new BountiesGui(plugin, page);
+                GuiItemUtil.guiPages.remove(view.getTopInventory());
+                player.openInventory(bountiesGui.getInventory());
                 return;
             }
-            if (currentItem.equals(GuiInitializer.nextMenuButton())) {
-                page = GuiInitializer.guiPages.get(view.getTopInventory()) + 1;
-                GuiInitializer.guiPages.remove(view.getTopInventory());
-                player.openInventory(this.guiInitializer.listBountiesGui(page));
+            if (currentItem.equals(BountiesGui.nextMenuButton())) {
+                page = GuiItemUtil.guiPages.get(view.getTopInventory()) + 1;
+                bountiesGui = new BountiesGui(plugin, page);
+                GuiItemUtil.guiPages.remove(view.getTopInventory());
+                player.openInventory(bountiesGui.getInventory());
                 return;
             }
             if (!currentItem.getType().equals(Material.PLAYER_HEAD)) {
@@ -78,7 +74,9 @@ public class Events implements Listener {
 
             SkullMeta skull = (SkullMeta) currentItem.getItemMeta();
 
-            player.openInventory(this.guiInitializer.viewBountyGui(skull.getOwningPlayer().getUniqueId()));
+            BountyViewGui viewGui;
+            viewGui = new BountyViewGui(plugin, skull.getOwningPlayer().getUniqueId());
+            player.openInventory(viewGui.getInventory());
             return;
         }
 
@@ -178,11 +176,11 @@ public class Events implements Listener {
     public void OnPlayerKill(PlayerDeathEvent event) {
         Player killed = event.getEntity();
         Player killer = event.getEntity().getKiller();
-        this.jammyBounties.claimBounty(killed, killer);
+        this.plugin.claimBounty(killed, killer);
     }
 
     public void openSign(Player target) {
-        SignMenuFactory.Menu menu = this.jammyBounties.getSignMenuFactory().newMenu(Arrays.asList("", "^^^^^^^^", "Enter reward", "amount above"))
+        SignMenuFactory.Menu menu = this.plugin.getSignMenuFactory().newMenu(Arrays.asList("", "^^^^^^^^", "Enter reward", "amount above"))
                 .reopenIfFail(false)
                 .response((player, strings) -> {
                     String eco = strings[0];

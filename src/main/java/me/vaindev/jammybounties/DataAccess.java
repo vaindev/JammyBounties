@@ -1,13 +1,12 @@
 package me.vaindev.jammybounties;
 
-import me.vaindev.jammybounties.utils.TranslateBase64;
+import me.vaindev.jammybounties.Utils.TranslateBase64;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.*;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -34,13 +33,14 @@ public class DataAccess {
     public static void disconnect() {
         try {
             conn.close();
-        } catch (SQLException e) {}
+        } catch (SQLException ignored) {}
     }
 
     public static void initDb() throws SQLException, IOException {
         connect();
         String setup;
         try (InputStream in = plugin.getResource("dbsetup.sql")) {
+            assert in != null;
             setup = new String(in.readAllBytes());
         } catch (IOException e) {
             log.log(Level.SEVERE, "Could not read db setup file.", e);
@@ -179,9 +179,7 @@ public class DataAccess {
             items = null;
         }
 
-        Bounty bounty = new Bounty(uuid, items, eco, dateCreated);
-
-        return bounty;
+        return new Bounty(uuid, items, eco, dateCreated);
     }
 
     public static void removeBounty(UUID uuid) {

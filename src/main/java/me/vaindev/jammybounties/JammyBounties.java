@@ -1,14 +1,11 @@
 package me.vaindev.jammybounties;
 
-import me.vaindev.jammybounties.utils.GuiInitializer;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.ArrayList;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -19,7 +16,6 @@ public final class JammyBounties extends JavaPlugin {
 
     public static Economy economy;
 
-    public GuiInitializer guiInitializer;
     public SignMenuFactory signMenuFactory;
 
 
@@ -47,7 +43,6 @@ public final class JammyBounties extends JavaPlugin {
         this.log = getLogger();
 
         this.signMenuFactory = new SignMenuFactory(this);
-        this.guiInitializer = new GuiInitializer(this);
 
         try {
             DataAccess.initDb();
@@ -58,15 +53,15 @@ public final class JammyBounties extends JavaPlugin {
             return;
         }
 
-        getCommand("bounties").setExecutor(new Commands(this, this, this.guiInitializer));
-        getCommand("setbounty").setExecutor(new Commands(this, this, this.guiInitializer));
-        getCommand("claimbounty").setExecutor(new Commands(this, this, this.guiInitializer));
-        getCommand("bountyreload").setExecutor(new Commands(this, this, this.guiInitializer));
+        getCommand("bounties").setExecutor(new Commands(this));
+        getCommand("setbounty").setExecutor(new Commands(this));
+        getCommand("claimbounty").setExecutor(new Commands(this));
+        getCommand("bountyreload").setExecutor(new Commands(this));
 
         getCommand("setbounty").setTabCompleter(new TabComplete());
         getCommand("claimbounty").setTabCompleter(new TabComplete());
 
-        getServer().getPluginManager().registerEvents(new Events(this, this, this.guiInitializer), this);
+        getServer().getPluginManager().registerEvents(new Events(this), this);
 
         getServer().getConsoleSender().sendMessage(ChatColor.AQUA + "[JammyBounties] Plugin is enabled!");
 
