@@ -1,10 +1,9 @@
-package me.vaindev.jammybounties.Utils;
+package me.vaindev.jammybounties.utils;
 
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
 public class Pagination<T> extends ArrayList<T> {
@@ -40,7 +39,7 @@ public class Pagination<T> extends ArrayList<T> {
     }
 
     public int totalPages() {
-        return (int) Math.ceil((double) size() / pageSize);
+        return (int) Math.floor((double) size() / pageSize) + 1;
     }
 
     public boolean exists(int page) {
@@ -48,12 +47,12 @@ public class Pagination<T> extends ArrayList<T> {
     }
 
     public List<T> getPage(int page) {
-        if(page < 0 || page >= totalPages()) throw new IndexOutOfBoundsException("Index: " + page + ", Size: " + totalPages());
+        if(page < 0 || page > totalPages()) throw new IndexOutOfBoundsException("Index: " + page + ", Size: " + totalPages());
 
         List<T> objects = new ArrayList<>();
 
-        int min = page * pageSize;
-        int max = ((page * pageSize) + pageSize);
+        int min = (page - 1) * pageSize;
+        int max = page * pageSize;
 
         if(max > size()) max = size();
 
