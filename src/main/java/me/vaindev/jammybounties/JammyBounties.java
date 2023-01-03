@@ -1,5 +1,6 @@
 package me.vaindev.jammybounties;
 
+import me.vaindev.jammybounties.commands.BountiesCommand;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -53,13 +54,7 @@ public final class JammyBounties extends JavaPlugin {
             return;
         }
 
-        getCommand("bounties").setExecutor(new Commands(this));
-        getCommand("setbounty").setExecutor(new Commands(this));
-        getCommand("claimbounty").setExecutor(new Commands(this));
-        getCommand("bountyreload").setExecutor(new Commands(this));
-
-        getCommand("setbounty").setTabCompleter(new TabComplete());
-        getCommand("claimbounty").setTabCompleter(new TabComplete());
+        getCommand("bounties").setExecutor(new BountiesCommand(this));
 
         getServer().getPluginManager().registerEvents(new Events(this), this);
 
