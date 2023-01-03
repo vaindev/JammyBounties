@@ -1,9 +1,9 @@
 package me.vaindev.jammybounties;
 
-import me.vaindev.jammybounties.Inventories.BountiesGuis;
-import me.vaindev.jammybounties.Inventories.BountyViewGui;
-import me.vaindev.jammybounties.Utils.Pagination;
-import me.vaindev.jammybounties.Utils.StringFormat;
+import me.vaindev.jammybounties.inventories.BountiesGuis;
+import me.vaindev.jammybounties.inventories.BountyViewGui;
+import me.vaindev.jammybounties.utils.Pagination;
+import me.vaindev.jammybounties.utils.StringFormat;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -27,17 +27,51 @@ public class Events implements Listener {
     private static final Set<Player> successfullySetBounty = new HashSet<>();
     private final JammyBounties plugin;
 
-    private static Pagination<ItemStack> pagination;
-
     public Events(JammyBounties plugin) {
         this.plugin = plugin;
     }
 
     @EventHandler
-    public void OnInventoryClick(InventoryClickEvent event) {
+    public void OnBountiesGuiClick(InventoryClickEvent event) {
         InventoryView view = event.getView();
 
         if (!(event.getWhoClicked() instanceof Player player))
+            return;
+
+        if (!view.getTitle().equals(StringFormat
+                .formatString(this.plugin.getConfig().getConfigurationSection("lang").getString("bounties-gui-title"))))
+            return;
+
+        ItemStack currentItem = event.getCurrentItem();
+        BountiesGuis bountiesGuis = new BountiesGuis(plugin, player);
+
+        if (currentItem == null)
+            return;
+        event.setCancelled(true);
+        if (!currentItem.getType().equals(Material.PLAYER_HEAD))
+            return;
+        if (currentItem.equals(BountiesGuis.previousMenuButton())) {
+            player.openInventory(bountiesGuis.getPreviousInventory());
+            return;
+        }
+        if (currentItem.equals(BountiesGuis.nextMenuButton())) {
+            player.openInventory(bountiesGuis.getNextInventory());
+            return;
+        }
+
+        SkullMeta skull = (SkullMeta) currentItem.getItemMeta();
+
+        BountyViewGui viewGui;
+        viewGui = new BountyViewGui(plugin, skull.getOwningPlayer().getUniqueId());
+        player.openInventory(viewGui.getInventory());
+        return;
+    }
+
+    @EventHandler
+    public void OnViewBountyGuiClick(InventoryClickEvent event) {
+        InventoryView view = event.getView();
+
+        if (!(event.getWhoClicked() instanceof Player))
             return;
 
         if (view.getTitle().equals(StringFormat
@@ -45,118 +79,99 @@ public class Events implements Listener {
             event.setCancelled(true);
             return;
         }
+    }
 
-        if (view.getTitle().equals(StringFormat
-                .formatString(this.plugin.getConfig().getConfigurationSection("lang").getString("bounties-gui-title")))) {
+    @EventHandler
+    public void OnSetBountyGuiClick(InventoryClickEvent event) {
+        InventoryView view = event.getView();
 
-            ItemStack currentItem = event.getCurrentItem();
-            BountiesGuis bountiesGuis = new BountiesGuis(plugin, player);
+        if (!(event.getWhoClicked() instanceof Player player))
+            return;
 
-            if (currentItem == null)
-                return;
+        if (!view.getTitle().equals(StringFormat
+                .formatString(this.plugin.getConfig().getConfigurationSection("lang").getString("setbounty-gui-title"))))
+            return;
+
+        double eco = 0;
+
+        Inventory inv = event.getClickedInventory();
+
+        if (event.getSlot() < 9 &&
+                !(inv instanceof PlayerInventory)) {
             event.setCancelled(true);
-            if (!currentItem.getType().equals(Material.PLAYER_HEAD))
-                return;
-            if (currentItem.equals(BountiesGuis.previousMenuButton())) {
-                player.openInventory(bountiesGuis.getInventory());
-                return;
-            }
-            if (currentItem.equals(BountiesGuis.nextMenuButton())) {
-                player.openInventory(bountiesGuis.getInventory());
-                return;
-            }
+        }
 
-            SkullMeta skull = (SkullMeta) currentItem.getItemMeta();
-
-            BountyViewGui viewGui;
-            viewGui = new BountyViewGui(plugin, skull.getOwningPlayer().getUniqueId());
-            player.openInventory(viewGui.getInventory());
+        if (event.getSlot() == 2 &&
+                !(inv instanceof PlayerInventory)) {
+            setBountyMenuMap.put(player, event.getClickedInventory());
+            openSign(player);
             return;
         }
 
-        if (view.getTitle().equals(StringFormat
-                .formatString(this.plugin.getConfig().getConfigurationSection("lang").getString("setbounty-gui-title")))) {
-            double eco = 0;
+        if (event.getSlot() == 6 &&
+                !(event.getClickedInventory() instanceof PlayerInventory)) {
+            ItemStack[] items = filterInvItems(inv.getContents());
 
-            Inventory inv = event.getClickedInventory();
-
-            if (event.getSlot() < 9 &&
-                    !(inv instanceof PlayerInventory)) {
-                event.setCancelled(true);
-            }
-
-            if (event.getSlot() == 2 &&
-                    !(inv instanceof PlayerInventory)) {
-                setBountyMenuMap.put(player, event.getClickedInventory());
-                openSign(player);
+            SkullMeta skull;
+            try {
+                ItemStack head = inv.getItem(4);
+                skull = (SkullMeta) head.getItemMeta();
+            } catch (Exception e) {
+                StringFormat.msg(player, this.plugin.getConfig().getString("prefix") + plugin
+                        .getConfig()
+                        .getConfigurationSection("lang")
+                        .getString("unknown-error"));
+                event.getView().close();
                 return;
             }
+            UUID target = skull.getOwningPlayer().getUniqueId();
 
-            if (event.getSlot() == 6 &&
-                    !(event.getClickedInventory() instanceof PlayerInventory)) {
-                ItemStack[] items = filterInvItems(inv.getContents());
-
-                SkullMeta skull;
-                try {
-                    ItemStack head = inv.getItem(4);
-                    skull = (SkullMeta) head.getItemMeta();
-                } catch (Exception e) {
-                    StringFormat.msg(player, this.plugin.getConfig().getString("prefix") + plugin
-                            .getConfig()
-                            .getConfigurationSection("lang")
-                            .getString("unknown-error"));
-                    event.getView().close();
-                    return;
-                }
-                UUID target = skull.getOwningPlayer().getUniqueId();
-
-                List<String> lore = inv.getItem(2).getItemMeta().getLore();
-                String[] ecoString;
-                try {
-                    ecoString = lore.get(0).split(this.plugin.getConfig().getString("currency"));
-                    if (ecoString.length > 1)
-                        eco = Double.parseDouble(ecoString[1]);
-                } catch (NumberFormatException e) {
-                    StringFormat.msg(player, this.plugin.getConfig().getString("prefix") + plugin.getConfig().getConfigurationSection("lang").getString("invalid-eco-reward"));
-                }
-
-                if (!JammyBounties.economy.has(player, eco)) {
-                    StringFormat.msg(player, this.plugin.getConfig().getString("prefix") + plugin.getConfig().getConfigurationSection("lang").getString("insufficient-funds"));
-                    event.getView().close();
-                    return;
-                }
-                JammyBounties.economy.withdrawPlayer(player, eco);
-
-                String announcementString;
-                if (DataAccess.getBounty(target) != null){
-                    if (DataAccess.getBounty(target).getItems().length + items.length > 9) {
-                        StringFormat.msg(player, this.plugin.getConfig().getString("prefix") + this.plugin.getConfig().getConfigurationSection("lang").getString("too-many-items"));
-                        return;
-                    }
-                    DataAccess.appendBounty(target, items, eco);
-                    announcementString = this.plugin.getConfig().getConfigurationSection("lang").getString("bounty-appended");
-                } else {
-                    DataAccess.setBounty(target, items, eco);
-                    announcementString = this.plugin.getConfig().getConfigurationSection("lang").getString("bounty-set");
-                }
-                successfullySetBounty.add(player);
-                event.getView().close();
-
-                Bounty bounty = new Bounty(target, items, eco, null);
-                String rewardString = bounty.getRewardsAsString(plugin.getConfig().getString("currency"));
-
-                Player targetPlayer = Bukkit.getPlayer(target);
-                announcementString = announcementString
-                        .replaceAll("(?i)\\{player}", player.getDisplayName())
-                        .replaceAll("(?i)\\{target}",  targetPlayer != null ? targetPlayer.getDisplayName() : Bukkit.getOfflinePlayer(target).getName())
-                        .replaceAll("(?i)\\{rewards}", rewardString);
-                StringFormat.msg(player, this.plugin.getConfig().getString("prefix") + announcementString);
+            List<String> lore = inv.getItem(2).getItemMeta().getLore();
+            String[] ecoString;
+            try {
+                ecoString = lore.get(0).split(this.plugin.getConfig().getString("currency"));
+                if (ecoString.length > 1)
+                    eco = Double.parseDouble(ecoString[1]);
+            } catch (NumberFormatException e) {
+                StringFormat.msg(player, this.plugin.getConfig().getString("prefix") + plugin.getConfig().getConfigurationSection("lang").getString("invalid-eco-reward"));
             }
+
+            if (!JammyBounties.economy.has(player, eco)) {
+                StringFormat.msg(player, this.plugin.getConfig().getString("prefix") + plugin.getConfig().getConfigurationSection("lang").getString("insufficient-funds"));
+                event.getView().close();
+                return;
+            }
+            JammyBounties.economy.withdrawPlayer(player, eco);
+
+            String announcementString;
+            if (DataAccess.getBounty(target) != null) {
+                if (DataAccess.getBounty(target).getItems().length + items.length > 9) {
+                    StringFormat.msg(player, this.plugin.getConfig().getString("prefix") + this.plugin.getConfig().getConfigurationSection("lang").getString("too-many-items"));
+                    return;
+                }
+                DataAccess.appendBounty(target, items, eco);
+                announcementString = this.plugin.getConfig().getConfigurationSection("lang").getString("bounty-appended");
+            } else {
+                DataAccess.setBounty(target, items, eco);
+                announcementString = this.plugin.getConfig().getConfigurationSection("lang").getString("bounty-set");
+            }
+            successfullySetBounty.add(player);
+            event.getView().close();
+
+            Bounty bounty = new Bounty(target, items, eco, null);
+            String rewardString = bounty.getRewardsAsString(plugin.getConfig().getString("currency"));
+
+            Player targetPlayer = Bukkit.getPlayer(target);
+            announcementString = announcementString
+                    .replaceAll("(?i)\\{player}", player.getDisplayName())
+                    .replaceAll("(?i)\\{target}", targetPlayer != null ? targetPlayer.getDisplayName() : Bukkit.getOfflinePlayer(target).getName())
+                    .replaceAll("(?i)\\{rewards}", rewardString);
+            StringFormat.msg(player, this.plugin.getConfig().getString("prefix") + announcementString);
         }
     }
 
     @EventHandler
-    public void OnInventoryClose(InventoryCloseEvent event) {
+    public void OnSetBountyGuiClose(InventoryCloseEvent event) {
         if (!event.getView().getTitle().equals(StringFormat
                 .formatString(plugin.getConfig().getConfigurationSection("lang").getString("setbounty-gui-title"))))
             return;
