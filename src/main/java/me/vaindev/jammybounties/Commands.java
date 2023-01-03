@@ -1,6 +1,6 @@
 package me.vaindev.jammybounties;
 
-import me.vaindev.jammybounties.Inventories.BountiesGui;
+import me.vaindev.jammybounties.Inventories.BountiesGuis;
 import me.vaindev.jammybounties.Inventories.BountySetGui;
 import me.vaindev.jammybounties.Utils.StringFormat;
 import org.bukkit.command.Command;
@@ -26,7 +26,7 @@ public class Commands implements CommandExecutor {
                     return true;
                 }
 
-                BountiesGui gui = new BountiesGui(plugin, 1);
+                BountiesGuis gui = new BountiesGuis(plugin, player);
                 player.openInventory(gui.getInventory());
                 return true;
             }
@@ -83,7 +83,7 @@ public class Commands implements CommandExecutor {
                 return true;
             }
 
-            this.plugin.claimBounty(plugin.getServer().getPlayer(args[0]), player);
+            this.plugin.claimBounty(target, player);
             return true;
         }
 

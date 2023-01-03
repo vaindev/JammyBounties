@@ -99,8 +99,6 @@ public class DataAccess {
             return false;
         }
 
-        removeBounty(uuid);
-
         List<ItemStack> updatedItems = new ArrayList<>();
         updatedItems.addAll(List.of(dbItems));
         updatedItems.addAll(List.of(newItems));
@@ -108,10 +106,10 @@ public class DataAccess {
         double updatedEco = dbEco + newEco;
 
         try (PreparedStatement stmt = conn.prepareStatement(
-                "INSERT INTO bounties(uuid, items, eco, datecreated) VALUES(?, ?, ?, DateTime('now'))")) {
-            stmt.setString(1, uuid.toString());
-            stmt.setString(2, updatedFormattedItems);
-            stmt.setDouble(3, updatedEco);
+                "UPDATE bounties SET items = ?, eco = ? WHERE uuid = ?;")) {
+            stmt.setString(1, updatedFormattedItems);
+            stmt.setDouble(2, updatedEco);
+            stmt.setString(3, uuid.toString());
             stmt.execute();
             return true;
         } catch (SQLException e) {
@@ -128,6 +126,7 @@ public class DataAccess {
         ItemStack[] items;
         Date dateTime;
         UUID uuid;
+        Bounty bounty;
 
         try (PreparedStatement stmt = conn.prepareStatement(
                 "SELECT * FROM bounties;"
@@ -137,13 +136,20 @@ public class DataAccess {
                 uuidString = resultSet.getString("uuid");
                 formattedItems = resultSet.getString("items");
                 uuid = UUID.fromString(uuidString);
-                items = TranslateBase64.fromBase64(formattedItems);
+
+                try {
+                    items = TranslateBase64.fromBase64(formattedItems);
+                } catch (IOException e) {
+                    log.warning("Binary value could not be converted.");
+                    continue;
+                }
+
                 eco = resultSet.getDouble("eco");
                 dateTime = resultSet.getDate("datecreated");
-                Bounty bounty = new Bounty(uuid, items, eco, dateTime);
+                bounty = new Bounty(uuid, items, eco, dateTime);
                 bounties.add(bounty);
             }
-        } catch (SQLException | IOException e) {
+        } catch (SQLException e) {
             log.warning("Could not retrieve bounty or binary value could not be converted.");
             return new ArrayList<>();
         }

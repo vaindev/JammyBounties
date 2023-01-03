@@ -7,29 +7,35 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
 import static me.vaindev.jammybounties.Utils.GuiItemUtil.createGuiItem;
 import static me.vaindev.jammybounties.Utils.GuiItemUtil.createHeadGuiItem;
 
-public class BountyViewGui {
+public class BountyViewGui implements InventoryHolder {
 
     private final Inventory inventory;
+    private final UUID wantedPlayer;
     private final Plugin plugin;
 
     public BountyViewGui(Plugin plugin, UUID wantedPlayer) {
         this.plugin = plugin;
-        this.inventory = initialiseViewBountyGui(wantedPlayer);
+        this.wantedPlayer = wantedPlayer;
+        this.inventory = initialiseViewBountyGui();
     }
 
+    @Override
+    @NotNull
     public Inventory getInventory() {
         return this.inventory;
     }
 
-    public Inventory initialiseViewBountyGui(UUID wantedPlayer) {
+    public Inventory initialiseViewBountyGui() {
         Inventory gui = Bukkit.createInventory(null, 27, StringFormat
                 .formatString(this.plugin.getConfig().getConfigurationSection("lang").getString("viewbounty-gui-title")));
 
@@ -40,9 +46,9 @@ public class BountyViewGui {
             gui.setItem(i, createGuiItem(Material.MAGENTA_STAINED_GLASS_PANE, " "));
         }
 
-        gui.setItem(4, createHeadGuiItem(wantedPlayer));
+        gui.setItem(4, createHeadGuiItem(this.wantedPlayer));
 
-        Bounty bounty = DataAccess.getBounty(wantedPlayer);
+        Bounty bounty = DataAccess.getBounty(this.wantedPlayer);
 
         ItemStack[] items = null;
         double eco = 0;

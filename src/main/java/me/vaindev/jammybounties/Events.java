@@ -1,8 +1,8 @@
 package me.vaindev.jammybounties;
 
-import me.vaindev.jammybounties.Inventories.BountiesGui;
+import me.vaindev.jammybounties.Inventories.BountiesGuis;
 import me.vaindev.jammybounties.Inventories.BountyViewGui;
-import me.vaindev.jammybounties.Utils.GuiItemUtil;
+import me.vaindev.jammybounties.Utils.Pagination;
 import me.vaindev.jammybounties.Utils.StringFormat;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
@@ -27,6 +27,8 @@ public class Events implements Listener {
     private static final Set<Player> successfullySetBounty = new HashSet<>();
     private final JammyBounties plugin;
 
+    private static Pagination<ItemStack> pagination;
+
     public Events(JammyBounties plugin) {
         this.plugin = plugin;
     }
@@ -48,27 +50,19 @@ public class Events implements Listener {
                 .formatString(this.plugin.getConfig().getConfigurationSection("lang").getString("bounties-gui-title")))) {
 
             ItemStack currentItem = event.getCurrentItem();
-            BountiesGui bountiesGui;
+            BountiesGuis bountiesGuis = new BountiesGuis(plugin, player);
 
-            int page;
             if (currentItem == null)
                 return;
-            if (currentItem.equals(BountiesGui.previousMenuButton())) {
-                page = GuiItemUtil.guiPages.get(view.getTopInventory()) - 1;
-                bountiesGui = new BountiesGui(plugin, page);
-                GuiItemUtil.guiPages.remove(view.getTopInventory());
-                player.openInventory(bountiesGui.getInventory());
+            event.setCancelled(true);
+            if (!currentItem.getType().equals(Material.PLAYER_HEAD))
+                return;
+            if (currentItem.equals(BountiesGuis.previousMenuButton())) {
+                player.openInventory(bountiesGuis.getInventory());
                 return;
             }
-            if (currentItem.equals(BountiesGui.nextMenuButton())) {
-                page = GuiItemUtil.guiPages.get(view.getTopInventory()) + 1;
-                bountiesGui = new BountiesGui(plugin, page);
-                GuiItemUtil.guiPages.remove(view.getTopInventory());
-                player.openInventory(bountiesGui.getInventory());
-                return;
-            }
-            if (!currentItem.getType().equals(Material.PLAYER_HEAD)) {
-                event.setCancelled(true);
+            if (currentItem.equals(BountiesGuis.nextMenuButton())) {
+                player.openInventory(bountiesGuis.getInventory());
                 return;
             }
 
@@ -135,6 +129,10 @@ public class Events implements Listener {
 
                 String announcementString;
                 if (DataAccess.getBounty(target) != null){
+                    if (DataAccess.getBounty(target).getItems().length + items.length > 9) {
+                        StringFormat.msg(player, this.plugin.getConfig().getString("prefix") + this.plugin.getConfig().getConfigurationSection("lang").getString("too-many-items"));
+                        return;
+                    }
                     DataAccess.appendBounty(target, items, eco);
                     announcementString = this.plugin.getConfig().getConfigurationSection("lang").getString("bounty-appended");
                 } else {

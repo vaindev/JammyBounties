@@ -19,3 +19,4 @@ lang:
   bounty-limit-reached: " &cThe server has reached the bounty limit, you cannot set any more bounties until others have been collection or expired!"
   bounty-appended: " {PLAYER} added to {TARGET}'s bounty with the additional rewards: {REWARDS}"
   bounty-set: " {PLAYER} set a bounty on {TARGET} with the following rewards: {REWARDS}"
+  too-many-items: " The bounty's item limit has been reached, you cannot set this many items in a bounty!"
