@@ -1,4 +1,4 @@
-package me.vaindev.jammybounties.Utils;
+package me.vaindev.jammybounties.utils;
 
 import me.vaindev.jammybounties.Bounty;
 import me.vaindev.jammybounties.JammyBounties;
@@ -11,8 +11,6 @@ import org.bukkit.inventory.meta.SkullMeta;
 import java.util.*;
 
 public class GuiItemUtil {
-
-    public static final Map<Inventory, Integer> guiPages = new HashMap<>();
 
     public static ItemStack createGuiItem(final Material material, final String name, final String... lore) {
         final ItemStack item = new ItemStack(material, 1);

@@ -1,4 +1,4 @@
-package me.vaindev.jammybounties.Utils;
+package me.vaindev.jammybounties.utils;
 
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.io.BukkitObjectInputStream;

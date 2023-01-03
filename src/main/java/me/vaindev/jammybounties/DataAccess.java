@@ -1,6 +1,6 @@
 package me.vaindev.jammybounties;
 
-import me.vaindev.jammybounties.Utils.TranslateBase64;
+import me.vaindev.jammybounties.utils.TranslateBase64;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
