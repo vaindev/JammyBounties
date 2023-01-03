@@ -1,9 +1,10 @@
-package me.vaindev.jammybounties.Inventories;
+package me.vaindev.jammybounties.inventories;
 
 import me.vaindev.jammybounties.Bounty;
 import me.vaindev.jammybounties.DataAccess;
-import me.vaindev.jammybounties.Utils.Pagination;
-import me.vaindev.jammybounties.Utils.StringFormat;
+import me.vaindev.jammybounties.JammyBounties;
+import me.vaindev.jammybounties.utils.Pagination;
+import me.vaindev.jammybounties.utils.StringFormat;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -18,20 +19,21 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import static me.vaindev.jammybounties.Utils.GuiItemUtil.*;
+import static me.vaindev.jammybounties.utils.GuiItemUtil.*;
 
 public class BountiesGuis implements InventoryHolder {
 
     private final List<Inventory> inventories = new ArrayList<>();
     private final Pagination<Bounty> pagination;
     private final List<Bounty> bounties;
-    private final Plugin plugin;
+    private final JammyBounties plugin;
 
     private final int pageSize = 27;
 
-    public BountiesGuis(Plugin plugin, Player player) {
+    public BountiesGuis(JammyBounties plugin, Player player) {
         this.plugin = plugin;
         this.bounties = DataAccess.getBounties();
+        this.bounties.sort(Comparator.comparing(Bounty::getDateCreated).reversed());
         this.pagination = new Pagination<>(player, this.pageSize, this.bounties);
         initGui();
     }
@@ -39,18 +41,24 @@ public class BountiesGuis implements InventoryHolder {
     @Override
     @NotNull
     public Inventory getInventory() {
+        return this.inventories.get(this.pagination.getPageNumber() - 1);
+    }
+
+    public Inventory getPreviousInventory() {
+        return this.inventories.get(this.pagination.getPageNumber() - 2);
+    }
+
+    public Inventory getNextInventory() {
         return this.inventories.get(this.pagination.getPageNumber());
     }
 
     private void initGui() {
-        this.bounties.sort(Comparator.comparing(Bounty::getDateCreated).reversed());
-
-        int i = 0;
         for (int pageNum = 1; pageNum <= pagination.totalPages(); pageNum++) {
             Inventory inventory = Bukkit.createInventory(null, this.pageSize + 9, StringFormat
                     .formatString(this.plugin.getConfig().getConfigurationSection("lang").getString("bounties-gui-title")));
 
             List<Bounty> page = pagination.getPage(pageNum);
+
             inventory.setItem(this.pageSize + 4, createGuiItem(
                     Material.PAPER,
                     ChatColor.WHITE + "Current Page: " + ChatColor.GRAY + pageNum
@@ -59,9 +67,11 @@ public class BountiesGuis implements InventoryHolder {
                 inventory.setItem(this.pageSize + 3, previousMenuButton());
             if (pageNum * this.pageSize < bounties.size())
                 inventory.setItem(this.pageSize + 5, nextMenuButton());
-            for (Bounty bounty : page)
+
+            for (int i = 0; i < page.size(); i++) {
+                Bounty bounty = page.get(i);
                 inventory.setItem(i, createHeadGuiItem(bounty, this.plugin.getConfig().getString("currency")));
-            i++;
+            }
 
             this.inventories.add(inventory);
         }
