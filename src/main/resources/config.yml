@@ -3,6 +3,7 @@ currency: "¥"
 bounty-limit: -1
 
 lang:
+  reload: " &aPlugin was Reloaded!"
   invalid-command: " &cInvalid Command!"
   insufficient-permissions: " &cYou have insufficient permissions to do this!"
   sender-must-be-player: " &cYou must be a player to do this!"
