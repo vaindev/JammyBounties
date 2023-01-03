@@ -1,8 +1,9 @@
-package me.vaindev.jammybounties.Inventories;
+package me.vaindev.jammybounties.inventories;
 
 import me.vaindev.jammybounties.Bounty;
 import me.vaindev.jammybounties.DataAccess;
-import me.vaindev.jammybounties.Utils.StringFormat;
+import me.vaindev.jammybounties.JammyBounties;
+import me.vaindev.jammybounties.utils.StringFormat;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -14,16 +15,16 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
-import static me.vaindev.jammybounties.Utils.GuiItemUtil.createGuiItem;
-import static me.vaindev.jammybounties.Utils.GuiItemUtil.createHeadGuiItem;
+import static me.vaindev.jammybounties.utils.GuiItemUtil.createGuiItem;
+import static me.vaindev.jammybounties.utils.GuiItemUtil.createHeadGuiItem;
 
 public class BountyViewGui implements InventoryHolder {
 
     private final Inventory inventory;
     private final UUID wantedPlayer;
-    private final Plugin plugin;
+    private final JammyBounties plugin;
 
-    public BountyViewGui(Plugin plugin, UUID wantedPlayer) {
+    public BountyViewGui(JammyBounties plugin, UUID wantedPlayer) {
         this.plugin = plugin;
         this.wantedPlayer = wantedPlayer;
         this.inventory = initialiseViewBountyGui();
