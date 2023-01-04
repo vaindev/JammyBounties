@@ -2,14 +2,11 @@ package me.vaindev.jammybounties.commands;
 
 import me.vaindev.jammybounties.DataAccess;
 import me.vaindev.jammybounties.JammyBounties;
-import me.vaindev.jammybounties.inventories.BountiesGuis;
 import me.vaindev.jammybounties.inventories.BountySetGui;
 import me.vaindev.jammybounties.utils.StringFormat;
-import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class CommandSet extends SubCommand {

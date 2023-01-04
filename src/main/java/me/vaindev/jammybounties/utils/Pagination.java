@@ -42,10 +42,6 @@ public class Pagination<T> extends ArrayList<T> {
         return (int) Math.floor((double) size() / pageSize) + 1;
     }
 
-    public boolean exists(int page) {
-        return !(page < 0) && page < totalPages();
-    }
-
     public List<T> getPage(int page) {
         if(page < 0 || page > totalPages()) throw new IndexOutOfBoundsException("Index: " + page + ", Size: " + totalPages());
 
