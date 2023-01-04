@@ -5,6 +5,7 @@ import me.vaindev.jammybounties.DataAccess;
 import me.vaindev.jammybounties.JammyBounties;
 import me.vaindev.jammybounties.utils.Pagination;
 import me.vaindev.jammybounties.utils.StringFormat;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -12,7 +13,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -45,11 +45,16 @@ public class BountiesGuis implements InventoryHolder {
     }
 
     public Inventory getPreviousInventory() {
-        return this.inventories.get(this.pagination.getPageNumber() - 2);
+        int previousPage = this.pagination.getPageNumber() - 2;
+        this.pagination.setPageNumber(previousPage);
+        return this.inventories.get(previousPage);
+
     }
 
     public Inventory getNextInventory() {
-        return this.inventories.get(this.pagination.getPageNumber());
+        int nextPage = this.pagination.getPageNumber();
+        this.pagination.setPageNumber(nextPage);
+        return this.inventories.get(nextPage);
     }
 
     private void initGui() {
@@ -61,7 +66,7 @@ public class BountiesGuis implements InventoryHolder {
 
             inventory.setItem(this.pageSize + 4, createGuiItem(
                     Material.PAPER,
-                    ChatColor.WHITE + "Current Page: " + ChatColor.GRAY + pageNum
+                    Component.text(ChatColor.WHITE + "Current Page: " + ChatColor.GRAY + pageNum)
             ));
             if (pageNum > 1)
                 inventory.setItem(this.pageSize + 3, previousMenuButton());
@@ -80,14 +85,14 @@ public class BountiesGuis implements InventoryHolder {
     public static ItemStack previousMenuButton() {
         return createHeadGuiItem(
                 "MHF_ArrowLeft",
-                ChatColor.GREEN + "Previous Page"
+                Component.text(ChatColor.GREEN + "Previous Page")
         );
     }
 
     public static ItemStack nextMenuButton() {
         return createHeadGuiItem(
                 "MHF_ArrowRight",
-                ChatColor.GREEN + "Next Page"
+                Component.text(ChatColor.GREEN + "Next Page")
         );
     }
 }
