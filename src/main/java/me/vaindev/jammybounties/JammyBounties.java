@@ -1,6 +1,8 @@
 package me.vaindev.jammybounties;
 
 import me.vaindev.jammybounties.commands.BountiesCommand;
+import me.vaindev.jammybounties.utils.StringFormat;
+import net.kyori.adventure.text.Component;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -18,7 +20,6 @@ public final class JammyBounties extends JavaPlugin {
     public static Economy economy;
 
     public SignMenuFactory signMenuFactory;
-
 
     public Logger log;
 
@@ -76,17 +77,26 @@ public final class JammyBounties extends JavaPlugin {
             return;
 
         Bounty bounty = DataAccess.getBounty(killedId);
-        String rewardString = bounty.getRewardsAsString(this.getConfig().getString("currency"));
+        Component rewardsTextComponent = bounty.getRewardsTextComponent(this.getConfig().getString("currency"));
         DataAccess.removeBounty(killedId);
 
         killer.getInventory().addItem(bounty.getItems());
         economy.depositPlayer(killer, bounty.getEco());
-        String announcementString = this.getConfig().getString("prefix") + this.getConfig().getConfigurationSection("lang").getString("bounty-claimed");
-        announcementString = announcementString
-                .replaceAll("(?i)\\{killer}", killer.getDisplayName())
-                .replaceAll("(?i)\\{target}", killed.getDisplayName())
-                .replaceAll("(?i)\\{rewards}", rewardString);
+        Component announcement = StringFormat.formatString(this.getConfig().getConfigurationSection("lang").getString("bounty-claimed"));
+        announcement = announcement
+                .replaceText(config -> {
+                    config.match("(?i)\\{killer}");
+                    config.replacement(killer.displayName());
+                })
+                .replaceText(config -> {
+                    config.match("(?i)\\{target}");
+                    config.replacement(killed.displayName());
+                })
+                .replaceText(config -> {
+                    config.match("(?i)\\{rewards}");
+                    config.replacement(rewardsTextComponent);
+                });
 
-        this.getServer().broadcastMessage(announcementString);
+        StringFormat.broadcast(this.getServer(), StringFormat.formatString(this.getConfig().getString("prefix")).append(announcement));
     }
 }

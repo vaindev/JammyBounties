@@ -2,8 +2,10 @@ package me.vaindev.jammybounties;
 
 import me.vaindev.jammybounties.inventories.BountiesGuis;
 import me.vaindev.jammybounties.inventories.BountyViewGui;
-import me.vaindev.jammybounties.utils.Pagination;
 import me.vaindev.jammybounties.utils.StringFormat;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -17,9 +19,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.util.Consumer;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.List;
 
 public class Events implements Listener {
 
@@ -38,7 +41,7 @@ public class Events implements Listener {
         if (!(event.getWhoClicked() instanceof Player player))
             return;
 
-        if (!view.getTitle().equals(StringFormat
+        if (!view.title().equals(StringFormat
                 .formatString(this.plugin.getConfig().getConfigurationSection("lang").getString("bounties-gui-title"))))
             return;
 
@@ -64,7 +67,6 @@ public class Events implements Listener {
         BountyViewGui viewGui;
         viewGui = new BountyViewGui(plugin, skull.getOwningPlayer().getUniqueId());
         player.openInventory(viewGui.getInventory());
-        return;
     }
 
     @EventHandler
@@ -74,10 +76,9 @@ public class Events implements Listener {
         if (!(event.getWhoClicked() instanceof Player))
             return;
 
-        if (view.getTitle().equals(StringFormat
+        if (view.title().equals(StringFormat
                 .formatString(this.plugin.getConfig().getConfigurationSection("lang").getString("viewbounty-gui-title")))) {
             event.setCancelled(true);
-            return;
         }
     }
 
@@ -88,7 +89,7 @@ public class Events implements Listener {
         if (!(event.getWhoClicked() instanceof Player player))
             return;
 
-        if (!view.getTitle().equals(StringFormat
+        if (!view.title().equals(StringFormat
                 .formatString(this.plugin.getConfig().getConfigurationSection("lang").getString("setbounty-gui-title"))))
             return;
 
@@ -124,12 +125,12 @@ public class Events implements Listener {
                 event.getView().close();
                 return;
             }
-            UUID target = skull.getOwningPlayer().getUniqueId();
+            UUID targetId = skull.getOwningPlayer().getUniqueId();
 
-            List<String> lore = inv.getItem(2).getItemMeta().getLore();
+            List<Component> lore = inv.getItem(2).getItemMeta().lore();
             String[] ecoString;
             try {
-                ecoString = lore.get(0).split(this.plugin.getConfig().getString("currency"));
+                ecoString = LegacyComponentSerializer.legacyAmpersand().serialize(lore.get(0)).split(this.plugin.getConfig().getString("currency"));
                 if (ecoString.length > 1)
                     eco = Double.parseDouble(ecoString[1]);
             } catch (NumberFormatException e) {
@@ -143,36 +144,46 @@ public class Events implements Listener {
             }
             JammyBounties.economy.withdrawPlayer(player, eco);
 
-            String announcementString;
-            if (DataAccess.getBounty(target) != null) {
-                if (DataAccess.getBounty(target).getItems().length + items.length > 9) {
+            Component announcement;
+            if (DataAccess.getBounty(targetId) != null) {
+                if (DataAccess.getBounty(targetId).getItems().length + items.length > 9) {
                     StringFormat.msg(player, this.plugin.getConfig().getString("prefix") + this.plugin.getConfig().getConfigurationSection("lang").getString("too-many-items"));
                     return;
                 }
-                DataAccess.appendBounty(target, items, eco);
-                announcementString = this.plugin.getConfig().getConfigurationSection("lang").getString("bounty-appended");
+                DataAccess.appendBounty(targetId, items, eco);
+                announcement = StringFormat.formatString(this.plugin.getConfig().getConfigurationSection("lang").getString("bounty-appended"));
             } else {
-                DataAccess.setBounty(target, items, eco);
-                announcementString = this.plugin.getConfig().getConfigurationSection("lang").getString("bounty-set");
+                DataAccess.setBounty(targetId, items, eco);
+                announcement = StringFormat.formatString(this.plugin.getConfig().getConfigurationSection("lang").getString("bounty-set"));
             }
             successfullySetBounty.add(player);
             event.getView().close();
 
-            Bounty bounty = new Bounty(target, items, eco, null);
-            String rewardString = bounty.getRewardsAsString(plugin.getConfig().getString("currency"));
+            Bounty bounty = new Bounty(targetId, items, eco, null);
+            Component rewardsTextComponent = bounty.getRewardsTextComponent(plugin.getConfig().getString("currency"));
 
-            Player targetPlayer = Bukkit.getPlayer(target);
-            announcementString = announcementString
-                    .replaceAll("(?i)\\{player}", player.getDisplayName())
-                    .replaceAll("(?i)\\{target}", targetPlayer != null ? targetPlayer.getDisplayName() : Bukkit.getOfflinePlayer(target).getName())
-                    .replaceAll("(?i)\\{rewards}", rewardString);
-            StringFormat.msg(player, this.plugin.getConfig().getString("prefix") + announcementString);
+            Player targetPlayer = Bukkit.getPlayer(targetId);
+            Component targetName = targetPlayer != null ? targetPlayer.displayName() : Component.text(Bukkit.getOfflinePlayer(targetId).getName());
+            announcement = announcement
+                    .replaceText(config -> {
+                        config.match("(?i)\\{player}");
+                        config.replacement(player.displayName());
+                    })
+                    .replaceText(config -> {
+                        config.match("(?i)\\{target}");
+                        config.replacement(targetName);
+                    })
+                    .replaceText(config -> {
+                        config.match("(?i)\\{rewards}");
+                        config.replacement(rewardsTextComponent);
+                    });
+            StringFormat.msg(player, StringFormat.formatString(this.plugin.getConfig().getString("prefix")).append(announcement));
         }
     }
 
     @EventHandler
     public void OnSetBountyGuiClose(InventoryCloseEvent event) {
-        if (!event.getView().getTitle().equals(StringFormat
+        if (!event.getView().title().equals(StringFormat
                 .formatString(plugin.getConfig().getConfigurationSection("lang").getString("setbounty-gui-title"))))
             return;
 
@@ -203,10 +214,10 @@ public class Events implements Listener {
 
                     ItemStack ecoSet = inv.getItem(2);
                     ItemMeta meta = ecoSet.getItemMeta();
-                    if (meta.getLore().size() > 1) {
-                        List<String> newLore = meta.getLore();
-                        newLore.set(0, ChatColor.DARK_GREEN + "Current Reward: " + ChatColor.GOLD + plugin.getConfig().getString("currency") + eco);
-                        meta.setLore(newLore);
+                    if (meta.lore().size() > 1) {
+                        List<Component> newLore = meta.lore();
+                        newLore.set(0, Component.text(ChatColor.DARK_GREEN + "Current Reward: " + ChatColor.GOLD + plugin.getConfig().getString("currency") + eco));
+                        meta.lore(newLore);
                     }
                     ecoSet.setItemMeta(meta);
                     inv.setItem(2, ecoSet);

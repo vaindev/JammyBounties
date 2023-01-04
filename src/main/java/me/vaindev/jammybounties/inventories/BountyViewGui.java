@@ -4,13 +4,13 @@ import me.vaindev.jammybounties.Bounty;
 import me.vaindev.jammybounties.DataAccess;
 import me.vaindev.jammybounties.JammyBounties;
 import me.vaindev.jammybounties.utils.StringFormat;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
@@ -41,10 +41,10 @@ public class BountyViewGui implements InventoryHolder {
                 .formatString(this.plugin.getConfig().getConfigurationSection("lang").getString("viewbounty-gui-title")));
 
         for (int i = 0; i < 27; i++) {
-            gui.setItem(i, createGuiItem(Material.GRAY_STAINED_GLASS_PANE, " "));
+            gui.setItem(i, createGuiItem(Material.GRAY_STAINED_GLASS_PANE, Component.text(" ")));
         }
         for (int i = 9; i < 18; i++) {
-            gui.setItem(i, createGuiItem(Material.MAGENTA_STAINED_GLASS_PANE, " "));
+            gui.setItem(i, createGuiItem(Material.MAGENTA_STAINED_GLASS_PANE, Component.text(" ")));
         }
 
         gui.setItem(4, createHeadGuiItem(this.wantedPlayer));
@@ -60,8 +60,9 @@ public class BountyViewGui implements InventoryHolder {
         }
 
         gui.setItem(22, createGuiItem(Material.GOLD_NUGGET,
-                ChatColor.DARK_GREEN + "Cash Reward",
-                ChatColor.GOLD + this.plugin.getConfig().getString("currency") + eco));
+                Component.text(ChatColor.DARK_GREEN + "Cash Reward"),
+                Component.text(ChatColor.GOLD + this.plugin.getConfig().getString("currency") + eco))
+        );
 
         int i = 9;
         if (items != null)

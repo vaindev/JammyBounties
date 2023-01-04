@@ -2,12 +2,12 @@ package me.vaindev.jammybounties.inventories;
 
 import me.vaindev.jammybounties.JammyBounties;
 import me.vaindev.jammybounties.utils.StringFormat;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
-import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
@@ -35,17 +35,17 @@ public class BountySetGui implements InventoryHolder {
 
     public void initGui() {
         for (int i = 0; i < 9; i++) {
-            inventory.setItem(i, createGuiItem(Material.GRAY_STAINED_GLASS_PANE, " "));
+            inventory.setItem(i, createGuiItem(Material.GRAY_STAINED_GLASS_PANE, Component.text(" ")));
         }
 
         inventory.setItem(2, createGuiItem(
                 Material.GOLD_NUGGET,
-                ChatColor.DARK_GREEN + "Set Cash Reward",
-                ChatColor.GREEN + "Current Reward: ", ChatColor.GRAY + "Click to Enter/ Change Cash Reward"));
+                Component.text(ChatColor.DARK_GREEN + "Set Cash Reward"),
+                Component.text(ChatColor.GREEN + "Current Reward: "), Component.text(ChatColor.GRAY + "Click to Enter/ Change Cash Reward")));
         inventory.setItem(6, createGuiItem(
                 Material.EMERALD,
-                ChatColor.DARK_GREEN + "Set Bounty",
-                ChatColor.GRAY + "Click to Confirm"));
+                Component.text(ChatColor.DARK_GREEN + "Set Bounty"),
+                Component.text(ChatColor.GRAY + "Click to Confirm")));
         inventory.setItem(4, createHeadGuiItem(this.wantedPlayer));
     }
 }

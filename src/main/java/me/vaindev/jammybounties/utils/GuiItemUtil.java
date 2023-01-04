@@ -2,8 +2,8 @@ package me.vaindev.jammybounties.utils;
 
 import me.vaindev.jammybounties.Bounty;
 import me.vaindev.jammybounties.JammyBounties;
+import net.kyori.adventure.text.Component;
 import org.bukkit.*;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
@@ -12,12 +12,12 @@ import java.util.*;
 
 public class GuiItemUtil {
 
-    public static ItemStack createGuiItem(final Material material, final String name, final String... lore) {
+    public static ItemStack createGuiItem(final Material material, final Component name, final Component... lore) {
         final ItemStack item = new ItemStack(material, 1);
         final ItemMeta meta = item.getItemMeta();
 
-        meta.setDisplayName(name);
-        meta.setLore(Arrays.asList(lore));
+        meta.displayName(name);
+        meta.lore(Arrays.asList(lore));
         meta.setCustomModelData(JammyBounties.INV_ITEM_DATA);
 
         item.setItemMeta(meta);
@@ -30,17 +30,17 @@ public class GuiItemUtil {
 
         OfflinePlayer user = Bukkit.getOfflinePlayer(uuid);
         skull.setOwningPlayer(user);
-        skull.setDisplayName(ChatColor.YELLOW + (net.md_5.bungee.api.ChatColor.BOLD + "WANTED: " + ChatColor.YELLOW + user.getName()));
+        skull.displayName(Component.text(ChatColor.YELLOW + (ChatColor.BOLD + "WANTED: " + ChatColor.YELLOW + user.getName())));
         skull.setCustomModelData(JammyBounties.INV_ITEM_DATA);
         head.setItemMeta(skull);
         return head;
     }
 
-    public static ItemStack createHeadGuiItem(String user, final String name) {
+    public static ItemStack createHeadGuiItem(String user, final Component name) {
         ItemStack head = new ItemStack(Material.PLAYER_HEAD);
         SkullMeta skull = (SkullMeta) head.getItemMeta();
 
-        skull.setDisplayName(name);
+        skull.displayName(name);
         skull.setOwner(user);
         head.setItemMeta(skull);
         return head;
@@ -53,14 +53,14 @@ public class GuiItemUtil {
         double eco = bounty.getEco();
         SkullMeta skull = (SkullMeta) head.getItemMeta();
 
-        ArrayList<String> lore = new ArrayList<>();
-        lore.add(ChatColor.GREEN + "Reward Amount: " + ChatColor.YELLOW + currencySymbol + Math.round(eco));
-        lore.add(ChatColor.GREEN + "Items: " + ChatColor.YELLOW + items.length + ChatColor.GRAY + " (Click to see more info)");
+        ArrayList<Component> lore = new ArrayList<>();
+        lore.add(Component.text(ChatColor.GREEN + "Reward Amount: " + ChatColor.YELLOW + currencySymbol + Math.round(eco)));
+        lore.add(Component.text(ChatColor.GREEN + "Items: " + ChatColor.YELLOW + items.length + ChatColor.GRAY + " (Click to see more info)"));
 
         OfflinePlayer user = Bukkit.getOfflinePlayer(uuid);
         skull.setOwningPlayer(user);
-        skull.setDisplayName(user.getName() + "'s Bounty");
-        skull.setLore(lore);
+        skull.displayName(Component.text(user.getName() + "'s Bounty"));
+        skull.lore(lore);
 
         head.setItemMeta(skull);
         return head;
